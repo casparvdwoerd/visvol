@@ -93,7 +93,39 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         return volume.getVoxel(x, y, z);
     }
-
+    
+    short TIP(double[] coord) {
+        
+        double x = coord[0];
+        double y = coord[1] ;
+        double z = coord[2];
+        
+        int x0 = (int) Math.floor(coord[0]);
+        int y0 = (int) Math.floor(coord[1]);
+        int z0 = (int) Math.floor(coord[2]);
+        
+        int x1 = (int) Math.ceil(coord[0]);
+        int y1 = (int) Math.ceil(coord[1]);
+        int z1 = (int) Math.ceil(coord[2]);
+        
+        double a = x - x0;
+        double b = y - y0;
+        double c = z - z0;
+        
+        double p000 = volume.getVoxel(x0, y0, z0);
+        double p100 = volume.getVoxel(x1, y0, z0);
+        double p101 = volume.getVoxel(x1, y0, z1);
+        double p110 = volume.getVoxel(x1, y1, z0);
+        double p111 = volume.getVoxel(x1, y1, z1);
+        double p001 = volume.getVoxel(x0, y0, z1);
+        double p010 = volume.getVoxel(x0, y1, z0);
+        double p011 = volume.getVoxel(x0, y1, z1);
+        
+        double q = p000 * (1-a)*(1-b)*(1-c) + p100 * a*(1-b)*(1-c) + p110 * a*b*(1-c) + p010 * (1-a)*b*(1-c) + p001 * (1-a)*(1-b)*c + p101 * a*(1-b)*c + p111 * a*b*c + p011 * (1-a)*b*c;
+        
+        return (short) q;
+        
+    }
 
     void slicer2(double[] viewMatrix) {
 
@@ -210,7 +242,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     if(val > maxval){
                         maxval = val;
                     }
-           
+                    
                 }
                 
                 // Map the intensity to a grey value by linear scaling
