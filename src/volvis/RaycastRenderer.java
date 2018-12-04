@@ -227,8 +227,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
-                TFColor colorAfter = new TFColor();
-                TFColor colorBefore = new TFColor();
+                TFColor colorOut = new TFColor();
+                TFColor colorIn = new TFColor();
                 
                 //For loop
                     
@@ -242,16 +242,17 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int val = getVoxel(pixelCoord);
                 
                 //Back-to-front (slide 31 week 2)
-                colorAfter.r = voxelColor.a * voxelColor.r + (1-voxelColor.a)*colorBefore.r;
-                colorAfter.g = voxelColor.a * voxelColor.g + (1-voxelColor.a)*colorBefore.g;
-                colorAfter.b = voxelColor.a * voxelColor.b + (1-voxelColor.a)*colorBefore.b;
-                colorAfter.a = (1-voxelColor.a)*colorBefore.a;
+                colorOut.r = colorIn.r + voxelColor.r*voxelColor.a*(1-colorIn.a);
+                colorOut.g = colorIn.g + voxelColor.g*voxelColor.a*(1-colorIn.a);
+                colorOut.b = colorIn.b + voxelColor.b*voxelColor.a*(1-colorIn.a);
+                colorOut.a = colorIn.a + voxelColor.a*(1-colorIn.a);
                 
-                // Map the intensity to a grey value by linear scaling
+                /*// Map the intensity to a grey value by linear scaling
                 voxelColor.r = val/max;
                 voxelColor.g = voxelColor.r;
                 voxelColor.b = voxelColor.r;
                 voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
+                */
                 // Alternatively, apply the transfer function to obtain a color
                 // voxelColor = tFunc.getColor(val);          
                 
