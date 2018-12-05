@@ -55,6 +55,14 @@ public class GradientVolume {
         for (int i=0; i<data.length; i++) {
             data[i] = zero;
         }
+        // to compute the gradient. (slide 13 lecture 3)
+        for (int a = 1; a<volume.getDimX()-1; a++) {
+            for (int b = 1; b<volume.getDimY()-1; b++) {
+                for (int c = 1; c<volume.getDimZ()-1; c++) {
+                    
+                }
+            }
+        }
                 
     }
     
