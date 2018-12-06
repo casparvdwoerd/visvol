@@ -30,6 +30,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     TransferFunctionEditor tfEditor;
     TransferFunction2DEditor tfEditor2D;
     
+    private int option = 0;
+    
+    
     public RaycastRenderer() {
         panel = new RaycastRendererPanel(this);
         panel.setSpeedLabel("0");
@@ -130,61 +133,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
     }
     
-    /*
-    //Testen of dit werkt voor TLIP
-    
-    //Simple linear interpolation
-    public static short LIP(double a, int v0, int v1) {
-        return(short) ((1.0 - a)*v0 + a*v1);
-    }
-    
-    //Bi-linear interpolation
-    public static short TLIP(double x, double y, double z, double p000, double p100, double p101, double p110, double p111, double p001, double p010, double p011){
-        short p00 = LIP();
-        short p01 = LIP();
-        short p10 = LIP();
-        short p11 = LIP();
-        short q0 = LIP();
-        short q1 = LIP();
-        return(short) LIP(z, q0, q1);
-    }
-    
-    public short TriLIP (double[] coord){
-        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
-                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
-            return 0;
-        }
-    
-        short value = 0; 
-    
-        int x = coord[0];
-        int y = coord[1];
-        int z = coord[2];
-    
-        int x0 = (int) Math.floor(coord[0]);
-        int y0 = (int) Math.floor(coord[1]);
-        int z0 = (int) Math.floor(coord[2]);
-        
-        int x1 = (int) Math.ceil(coord[0]);
-        int y1 = (int) Math.ceil(coord[1]);
-        int z1 = (int) Math.ceil(coord[2]);
-            
-        double p000 = volume.getVoxel(x0, y0, z0);
-        double p100 = volume.getVoxel(x1, y0, z0);
-        double p101 = volume.getVoxel(x1, y0, z1);
-        double p110 = volume.getVoxel(x1, y1, z0);
-        double p111 = volume.getVoxel(x1, y1, z1);
-        double p001 = volume.getVoxel(x0, y0, z1);
-        double p010 = volume.getVoxel(x0, y1, z0);
-        double p011 = volume.getVoxel(x0, y1, z1);
-    
-        value = TLIP(x, y, z, p000, p100, p101, p110, p111, p001, p010, p011, x0, x1, y0, y1, z0, z1);
-    
-        return value;
-    }
-    
-    */
-
     //Original slicer
     void slicer(double[] viewMatrix) {
 
@@ -466,7 +414,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     @Override
     public void visualize(GL2 gl) {
 
-
+        
         if (volume == null) {
             return;
         }
@@ -477,6 +425,21 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         long startTime = System.currentTimeMillis();
         slicer(viewMatrix);    
+        
+        switch(option) {
+            //slicer
+            case 0 :    slicer(viewMatrix);
+                break;
+            //MIP
+            case 1 :    MIP(viewMatrix);
+                break;
+            //Compositing
+            case 2 :    compositing(viewMatrix);
+                break;
+            //2D transfer function
+            //case 3 :    2DTF(viewMatrix);
+                //break;
+        }
         
         long endTime = System.currentTimeMillis();
         double runningTime = (endTime - startTime);
@@ -526,5 +489,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int i=0; i < listeners.size(); i++) {
             listeners.get(i).changed();
         }
+    }
+    
+    public void setButton(int button) {
+        option = button;
     }
 }

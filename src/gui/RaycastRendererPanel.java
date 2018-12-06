@@ -133,15 +133,18 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mipButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mipButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+        renderer.setButton(1);
+        renderer.changed();
     }//GEN-LAST:event_mipButtonActionPerformed
 
     private void slicerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_slicerButtonActionPerformed
-        
+        renderer.setButton(0);
+        renderer.changed();
     }//GEN-LAST:event_slicerButtonActionPerformed
 
     private void compositingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compositingButtonActionPerformed
-        JOptionPane.showMessageDialog(this, "Not implemented.");
+        renderer.setButton(2);
+        renderer.changed();
     }//GEN-LAST:event_compositingButtonActionPerformed
 
     private void tf2dButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf2dButtonActionPerformed
