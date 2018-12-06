@@ -55,6 +55,7 @@ public class GradientVolume {
         for (int i=0; i<data.length; i++) {
             data[i] = zero;
         }
+        /*
         // to compute the gradient. (slide 13 lecture 3)
         //Iterate over all voxels, you start at 1, so that's why we use -1.
         //Then compute the gradient vectors of x, y and z using the formula of Levoy. 
@@ -69,10 +70,10 @@ public class GradientVolume {
                     VoxelGradient gradient = new VoxelGradient(gx, gy, gz);
                     
                     //Set the voxel gradient with the computed gradient
-                    this.setGradient(i, j, k, gradient);
+                    this.setGradient(i, j, k, gradient); 
                 }
             }
-        }
+        } */
                 
     }
     

@@ -55,7 +55,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         tFunc = new TransferFunction(volume.getMinimum(), volume.getMaximum());
         
         // uncomment this to initialize the TF with good starting values for the orange dataset 
-        //tFunc.setTestFunc();
+        tFunc.setTestFunc();
         
         
         tFunc.addTFChangeListener(this);
@@ -80,7 +80,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
      
 
-    short getVoxel2(double[] coord) {
+    short getVoxel1(double[] coord) {
 
         if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
                 || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
@@ -96,8 +96,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     short getVoxel(double[] coord) {
         
-        if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
-                || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
+        if (coord[0] < 0 || coord[0] +1 >= volume.getDimX() || coord[1] < 0 || coord[1] +1 >= volume.getDimY()
+                || coord[2] < 0 || coord[2] +1 >= volume.getDimZ()) {
             return 0;
         }
         
@@ -186,7 +186,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     */
 
     //Original slicer
-    void slicer(double[] viewMatrix) {
+    void slicer1(double[] viewMatrix) {
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -250,7 +250,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
     
-        void compositing(double[] viewMatrix) {
+        void slicer(double[] viewMatrix) {
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -293,40 +293,34 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 for (int ray = 0; ray < maxDepth; ray++){
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
-                            + volumeCenter[0];
+                            + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
                     pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
-                            + volumeCenter[1];
+                            + volumeCenter[1] + viewVec[1] * (ray-imageCenter);
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
-                            + volumeCenter[2];
+                            + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
 
                     int val = getVoxel(pixelCoord);
                     
                     voxelColor = tFunc.getColor(val);
                     
-                    //Front-to-back (linkje van Paolo)
-                    colorOut.r = colorIn.r + voxelColor.r*voxelColor.a*(1-colorIn.a);
-                    colorOut.g = colorIn.g + voxelColor.g*voxelColor.a*(1-colorIn.a);
-                    colorOut.b = colorIn.b + voxelColor.b*voxelColor.a*(1-colorIn.a);
-                    colorOut.a = colorIn.a + voxelColor.a*(1-colorIn.a);
+                    //Back to front, from the slides
+                    colorOut.r = voxelColor.a*voxelColor.r + (1-voxelColor.a)*colorIn.r;
+                    colorOut.g = voxelColor.a*voxelColor.g + (1-voxelColor.a)*colorIn.g;
+                    colorOut.b = voxelColor.a*voxelColor.b + (1-voxelColor.a)*colorIn.b;
+                    colorOut.a = (1-voxelColor.a)*colorIn.a;
 
-                    /*// Map the intensity to a grey value by linear scaling
-                    voxelColor.r = val/max;
-                    voxelColor.g = voxelColor.r;
-                    voxelColor.b = voxelColor.r;
-                    voxelColor.a = val > 0 ? 1.0 : 0.0;  // this makes intensity 0 completely transparent and the rest opaque
-                    */
-                    // Alternatively, apply the transfer function to obtain a color
-                    // voxelColor = tFunc.getColor(val);          
+                    colorIn = colorOut;       
 
-                    // BufferedImage expects a pixel color packed as ARGB in an int
-                    //Use colorOut instead of voxelColor
-                    int c_alpha = (1-colorOut.a) <= 1.0 ? (int) Math.floor((1-colorOut.a) * 255) : 255;
-                    int c_red = colorOut.r <= 1.0 ? (int) Math.floor(colorOut.r * 255) : 255;
-                    int c_green = colorOut.g <= 1.0 ? (int) Math.floor(colorOut.g * 255) : 255;
-                    int c_blue = colorOut.b <= 1.0 ? (int) Math.floor(colorOut.b * 255) : 255;
-                    int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
-                    image.setRGB(i, j, pixelColor);
                 }
+                
+                // BufferedImage expects a pixel color packed as ARGB in an int
+                //Use colorOut instead of voxelColor
+                int c_alpha = (1-colorOut.a) <= 1.0 ? (int) Math.floor((1-colorOut.a) * 255) : 255;
+                int c_red = colorOut.r <= 1.0 ? (int) Math.floor(colorOut.r * 255) : 255;
+                int c_green = colorOut.g <= 1.0 ? (int) Math.floor(colorOut.g * 255) : 255;
+                int c_blue = colorOut.b <= 1.0 ? (int) Math.floor(colorOut.b * 255) : 255;
+                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+                image.setRGB(i, j, pixelColor);
             }
         }
 
