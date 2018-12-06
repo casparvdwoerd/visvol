@@ -80,7 +80,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
      
 
-    short getVoxel1(double[] coord) {
+    short getVoxel(double[] coord) {
 
         if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
                 || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
@@ -94,7 +94,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return volume.getVoxel(x, y, z);
     }
     
-    short getVoxel(double[] coord) {
+    short TLIP(double[] coord) {
         
         if (coord[0] < 0 || coord[0] +1 >= volume.getDimX() || coord[1] < 0 || coord[1] +1 >= volume.getDimY()
                 || coord[2] < 0 || coord[2] +1 >= volume.getDimZ()) {
@@ -186,7 +186,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     */
 
     //Original slicer
-    void slicer1(double[] viewMatrix) {
+    void slicer(double[] viewMatrix) {
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -250,7 +250,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
     
-        void slicer(double[] viewMatrix) {
+        void compositing(double[] viewMatrix) {
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {

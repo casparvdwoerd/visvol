@@ -55,6 +55,7 @@ public class GradientVolume {
         for (int i=0; i<data.length; i++) {
             data[i] = zero;
         }
+        
         /*
         // to compute the gradient. (slide 13 lecture 3)
         //Iterate over all voxels, you start at 1, so that's why we use -1.
