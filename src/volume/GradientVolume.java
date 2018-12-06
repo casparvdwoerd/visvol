@@ -56,10 +56,20 @@ public class GradientVolume {
             data[i] = zero;
         }
         // to compute the gradient. (slide 13 lecture 3)
-        for (int a = 1; a<volume.getDimX()-1; a++) {
-            for (int b = 1; b<volume.getDimY()-1; b++) {
-                for (int c = 1; c<volume.getDimZ()-1; c++) {
+        //Iterate over all voxels, you start at 1, so that's why we use -1.
+        //Then compute the gradient vectors of x, y and z using the formula of Levoy. 
+        for (int i = 1; i<volume.getDimX()-1; i++) {
+            for (int j = 1; j<volume.getDimY()-1; j++) {
+                for (int k = 1; k<volume.getDimZ()-1; k++) {
+                    float gx = 0.5f*((volume.getVoxel(i+1, j, k))-(volume.getVoxel(i-1, j, k)));
+                    float gy = 0.5f*((volume.getVoxel(i, j+1, k))-(volume.getVoxel(i, j-1, k)));
+                    float gz = 0.5f*((volume.getVoxel(i, j, k+1))-(volume.getVoxel(i, j, k-1)));
                     
+                    //Uses float, so we need floats above. 
+                    VoxelGradient gradient = new VoxelGradient(gx, gy, gz);
+                    
+                    //Set the voxel gradient with the computed gradient
+                    this.setGradient(i, j, k, gradient);
                 }
             }
         }

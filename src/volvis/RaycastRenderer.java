@@ -133,10 +133,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     /*
     //Testen of dit werkt voor TLIP
     
+    //Simple linear interpolation
     public static short LIP(double a, int v0, int v1) {
         return(short) ((1.0 - a)*v0 + a*v1);
     }
     
+    //Bi-linear interpolation
     public static short TLIP(double x, double y, double z, double p000, double p100, double p101, double p110, double p111, double p001, double p010, double p011){
         short p00 = LIP();
         short p01 = LIP();
@@ -284,6 +286,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int j = 0; j < image.getHeight(); j++) {
             for (int i = 0; i < image.getWidth(); i++) {
                 
+                //Create ci (colorOut) and ci-1 (colorIn)
                 TFColor colorOut = new TFColor();
                 TFColor colorIn = new TFColor();
                 
@@ -316,6 +319,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     // voxelColor = tFunc.getColor(val);          
 
                     // BufferedImage expects a pixel color packed as ARGB in an int
+                    //Use colorOut instead of voxelColor
                     int c_alpha = (1-colorOut.a) <= 1.0 ? (int) Math.floor((1-colorOut.a) * 255) : 255;
                     int c_red = colorOut.r <= 1.0 ? (int) Math.floor(colorOut.r * 255) : 255;
                     int c_green = colorOut.g <= 1.0 ? (int) Math.floor(colorOut.g * 255) : 255;
