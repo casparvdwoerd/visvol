@@ -83,7 +83,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
      
 
-    short getVoxel(double[] coord) {
+    short getVoxel(double[] coord, boolean use_TLIP) {
+        
+        if(use_TLIP){
+            short voxval = TLIP(coord);
+            return voxval;
+        }
 
         if (coord[0] < 0 || coord[0] >= volume.getDimX() || coord[1] < 0 || coord[1] >= volume.getDimY()
                 || coord[2] < 0 || coord[2] >= volume.getDimZ()) {
@@ -135,6 +140,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     //Original slicer
     void slicer(double[] viewMatrix) {
+        boolean use_TLIP = true;
+        
+        if(interactiveMode){
+            use_TLIP = false;
+        }
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -175,7 +185,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                         + volumeCenter[2];
 
-                int val = getVoxel(pixelCoord);
+                int val = getVoxel(pixelCoord, use_TLIP);
                 
                 // Map the intensity to a grey value by linear scaling
                 voxelColor.r = val/max;
@@ -199,6 +209,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     }
     
         void compositing(double[] viewMatrix) {
+        
+        boolean use_TLIP = true;
+        int stepsize = 1;
+        
+        if(interactiveMode){
+            use_TLIP = false;
+            stepsize = 3;
+        }
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -238,7 +256,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 TFColor colorOut = new TFColor();
                 TFColor colorIn = new TFColor();
                 
-                for (int ray = 0; ray < maxDepth; ray++){
+                for (int ray = 0; ray < maxDepth; ray=ray+stepsize){
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
@@ -247,7 +265,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
 
-                    int val = getVoxel(pixelCoord);
+                    int val = getVoxel(pixelCoord, use_TLIP);
                     
                     voxelColor = tFunc.getColor(val);
                     
@@ -276,6 +294,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
         
     void MIP(double[] viewMatrix) {
+        
+        boolean use_TLIP = true;
+        int stepsize = 1;
+        
+        if(interactiveMode){
+            use_TLIP = false;
+            stepsize = 3;
+        }
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -313,7 +339,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             for (int i = 0; i < image.getWidth(); i++) {
                 int maxval = 0;
                 
-                for(int ray = 0; ray < depth; ray++){
+                for(int ray = 0; ray < depth; ray=ray+stepsize){
                     
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
@@ -323,7 +349,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
 
-                    int val = getVoxel(pixelCoord);
+                    int val = getVoxel(pixelCoord, use_TLIP);
 
                     if(val > maxval){
                         maxval = val;
