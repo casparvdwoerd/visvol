@@ -465,6 +465,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             //2D transfer function
             //case 3 :    2DTF(viewMatrix);
                 //break;
+            case 4 :    TLIP(viewMatrix);
+                break;
         }
         
         long endTime = System.currentTimeMillis();
