@@ -16,6 +16,7 @@ import util.TFChangeListener;
 import util.VectorMath;
 import volume.GradientVolume;
 import volume.Volume;
+import volume.VoxelGradient;
 
 /**
  *
@@ -109,7 +110,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             return 0;
         }
         
-        
         int x0 = (int) Math.floor(coord[0]);
         int y0 = (int) Math.floor(coord[1]);
         int z0 = (int) Math.floor(coord[2]);
@@ -121,7 +121,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double a = coord[0] - x0;
         double b = coord[1] - y0;
         double c = coord[2] - z0;
-        
         
         double p000 = volume.getVoxel(x0, y0, z0);
         double p100 = volume.getVoxel(x1, y0, z0);
@@ -138,8 +137,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
     }
     
-    //Original slicer
-    void slicer(double[] viewMatrix) {
+        void slicer(double[] viewMatrix) {
         boolean use_TLIP = true;
         
         if(interactiveMode){
@@ -208,13 +206,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
     }
     
-        void compositing(double[] viewMatrix) {
+    void compositing(double[] viewMatrix, boolean TLIP) {
         
         boolean use_TLIP = true;
         int stepsize = 1;
         
         if(interactiveMode){
-            use_TLIP = false;
+            TLIP = false;
             stepsize = 3;
         }
 
@@ -265,7 +263,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
 
-                    int val = getVoxel(pixelCoord, use_TLIP);
+                    int val = 0;
+                    
+                    if (TLIP) {
+                        val = TLIP(pixelCoord);
+                    } else {
+                        val = getVoxel(pixelCoord, TLIP);  
+                    }
+                    
                     
                     voxelColor = tFunc.getColor(val);
                     
@@ -290,6 +295,111 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
         }
 
+    }
+    
+    void twoD(double[] viewMatrix, boolean TLIP) {
+       
+        boolean use_TLIP = true;
+        int stepsize = 1;
+        
+        if(interactiveMode){
+            TLIP = false;
+            stepsize = 3;
+        } 
+        
+        //Get the values from the widget
+        int chosenIntensity = tfEditor2D.triangleWidget.baseIntensity;
+        double chosenRadius = tfEditor2D.triangleWidget.radius;
+        TFColor chosenColor = tfEditor2D.triangleWidget.color;
+        
+        double th = 1.0;
+        
+
+        // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+                image.setRGB(i, j, 0);
+            }
+        }
+
+        // vector uVec and vVec define a plane through the origin, 
+        // perpendicular to the view vector viewVec
+        // THIS IS THE PLANE THAT DEFINES THE SLICE
+        double[] viewVec = new double[3];
+        double[] uVec = new double[3];
+        double[] vVec = new double[3];
+        VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+        VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
+        VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
+
+        // image is square
+        // (IMAGECENTER,IMAGECENTER) IS THE CENTER OF THE IMAGE
+        int imageCenter = image.getWidth() / 2;
+
+        double[] pixelCoord = new double[3];
+        double[] volumeCenter = new double[3];
+        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+
+        // sample on a plane through the origin of the volume data
+        double max = volume.getMaximum();
+        TFColor voxelColor = new TFColor();
+        int maxDepth = (int) Math.floor(Math.sqrt( Math.pow(volume.getDimX(), 2) + Math.pow(volume.getDimY(), 2) + Math.pow(volume.getDimZ(), 2)));
+
+        
+        for (int j = 0; j < image.getHeight(); j++) {
+            for (int i = 0; i < image.getWidth(); i++) {
+                
+                //Create ci (colorOut) and ci-1 (colorIn)
+                TFColor colorOut = new TFColor();
+                TFColor colorIn = new TFColor();
+                
+                for (int ray = 0; ray < maxDepth; ray++){
+                    
+                    pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
+                            + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
+                    pixelCoord[1] = uVec[1] * (i - imageCenter) + vVec[1] * (j - imageCenter)
+                            + volumeCenter[1] + viewVec[1] * (ray-imageCenter);
+                    pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
+                            + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
+                    
+                                                        
+                    int val = getVoxel(pixelCoord, TLIP);
+                    
+                    if (pixelCoord[0] >= volume.getDimX() || pixelCoord[0] < 0 || pixelCoord[1] >= volume.getDimY() || pixelCoord[1] < 0 || pixelCoord[2] >= volume.getDimZ() || pixelCoord[2] < 0) {
+                            continue;
+                        }
+                                                           
+                    VoxelGradient vg = gradients.getGradient((int)Math.floor(pixelCoord[0]), (int)Math.floor(pixelCoord[1]), (int)Math.floor(pixelCoord[2]));
+                    
+                    //Levoy's method
+                    if (vg.mag == 0 && val == chosenIntensity) {
+                        voxelColor.a = chosenColor.a;
+                    } else if (vg.mag > 0 && (val - chosenRadius * vg.mag) <= chosenIntensity && chosenIntensity <= (val + chosenRadius * vg.mag)) {
+                        voxelColor.a = chosenColor.a * ((1 - 1/chosenRadius) * (Math.abs(chosenIntensity - val) / Math.abs(vg.mag)));
+                    } else {
+                        voxelColor.a = 0;
+                    }
+                    
+                    //Back to front, from the slides
+                    colorOut.r = voxelColor.a*chosenColor.r + (1-voxelColor.a)*colorIn.r;
+                    colorOut.g = voxelColor.a*chosenColor.g + (1-voxelColor.a)*colorIn.g;
+                    colorOut.b = voxelColor.a*chosenColor.b + (1-voxelColor.a)*colorIn.b;
+                    colorOut.a = (1-voxelColor.a)*colorIn.a;
+
+                    colorIn = colorOut;       
+
+                }
+                
+                // BufferedImage expects a pixel color packed as ARGB in an int
+                //Use colorOut instead of voxelColor
+                int c_alpha = (1-colorOut.a) <= 1.0 ? (int) Math.floor((1-colorOut.a) * 255) : 255;
+                int c_red = colorOut.r <= 1.0 ? (int) Math.floor(colorOut.r * 255) : 255;
+                int c_green = colorOut.g <= 1.0 ? (int) Math.floor(colorOut.g * 255) : 255;
+                int c_blue = colorOut.b <= 1.0 ? (int) Math.floor(colorOut.b * 255) : 255;
+                int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
+                image.setRGB(i, j, pixelColor);
+            }
+        }
     }
     
         
@@ -460,13 +570,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             case 1 :    MIP(viewMatrix);
                 break;
             //Compositing
-            case 2 :    compositing(viewMatrix);
+            case 2 :    panel.compositingButton.setSelected(true);
+                        compositing(viewMatrix, panel.jCheckBox1.isSelected());
                 break;
             //2D transfer function
-            //case 3 :    2DTF(viewMatrix);
+            case 3 :    twoD(viewMatrix, panel.jCheckBox1.isSelected());
                 //break;
-            case 4 :    TLIP(viewMatrix);
-                break;
         }
         
         long endTime = System.currentTimeMillis();

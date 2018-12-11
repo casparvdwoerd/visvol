@@ -284,7 +284,7 @@ public class TransferFunction2DEditor extends javax.swing.JPanel {
         setSelectedInfo();
         changed();
     }//GEN-LAST:event_opacityLabelActionPerformed
-
+    
     public class TriangleWidget {
 
         public short baseIntensity;
