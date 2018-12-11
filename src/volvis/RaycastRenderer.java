@@ -208,12 +208,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void compositing(double[] viewMatrix, boolean TLIP) {
         
+        //efficiency variables
         boolean use_TLIP = true;
-        int stepsize = 1;
-        
+        int ray_steps = 1;
+        int image_steps=1;
         if(interactiveMode){
             TLIP = false;
-            stepsize = 3;
+            ray_steps = 3;
+            image_steps = 3;
         }
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
@@ -247,14 +249,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int maxDepth = (int) Math.floor(Math.sqrt( Math.pow(volume.getDimX(), 2) + Math.pow(volume.getDimY(), 2) + Math.pow(volume.getDimZ(), 2)));
 
         
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j < image.getHeight(); j=j+image_steps) {
+            for (int i = 0; i < image.getWidth(); i=i+image_steps {
                 
                 //Create ci (colorOut) and ci-1 (colorIn)
                 TFColor colorOut = new TFColor();
                 TFColor colorIn = new TFColor();
                 
-                for (int ray = 0; ray < maxDepth; ray=ray+stepsize){
+                for (int ray = 0; ray < maxDepth; ray=ray+ray_steps){
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
@@ -292,6 +294,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int c_blue = colorOut.b <= 1.0 ? (int) Math.floor(colorOut.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
                 image.setRGB(i, j, pixelColor);
+                
+                //set skipped pixels to same value during interactive mode
+                if(image_steps>1){
+                    if(j+1<image.getHeight() && i+1<image.getWidth()){
+                        image.setRGB(i, j+1, pixelColor);
+                        image.setRGB(i+1, j, pixelColor);
+                        image.setRGB(i+1, j+1, pixelColor);
+                    }
+                    if(j+2<image.getHeight() && i+2<image.getWidth()){
+                        image.setRGB(i, j+2, pixelColor);
+                        image.setRGB(i+1, j+2, pixelColor);
+                        image.setRGB(i+2, j, pixelColor);
+                        image.setRGB(i+2, j+1, pixelColor);
+                        image.setRGB(i+2, j+2, pixelColor);
+                    }
+                }
             }
         }
 
@@ -299,13 +317,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     
     void twoD(double[] viewMatrix, boolean TLIP) {
        
+        //efficiency variables
         boolean use_TLIP = true;
-        int stepsize = 1;
-        
+        int ray_steps = 1;
+        int image_steps=1;
         if(interactiveMode){
             TLIP = false;
-            stepsize = 3;
-        } 
+            ray_steps = 3;
+            image_steps = 3;
+        }
         
         //Get the values from the widget
         int chosenIntensity = tfEditor2D.triangleWidget.baseIntensity;
@@ -344,14 +364,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int maxDepth = (int) Math.floor(Math.sqrt( Math.pow(volume.getDimX(), 2) + Math.pow(volume.getDimY(), 2) + Math.pow(volume.getDimZ(), 2)));
 
         
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j < image.getHeight(); j=j+image_steps) {
+            for (int i = 0; i < image.getWidth(); i=i+image_steps) {
                 
                 //Create ci (colorOut) and ci-1 (colorIn)
-                TFColor colorOut = new TFColor(0,0,0,1);
+                TFColor colorOut = new TFColor();
                 TFColor colorIn = new TFColor();
                 
-                for (int ray = 0; ray < maxDepth; ray = ray + stepsize){
+                for (int ray = 0; ray < maxDepth; ray = ray + ray_steps){
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
@@ -395,6 +415,22 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int c_blue = colorOut.b <= 1.0 ? (int) Math.floor(colorOut.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
                 image.setRGB(i, j, pixelColor);
+                
+                //set skipped pixels to same value during interactive mode
+                if(image_steps>1){
+                    if(j+1<image.getHeight() && i+1<image.getWidth()){
+                        image.setRGB(i, j+1, pixelColor);
+                        image.setRGB(i+1, j, pixelColor);
+                        image.setRGB(i+1, j+1, pixelColor);
+                    }
+                    if(j+2<image.getHeight() && i+2<image.getWidth()){
+                        image.setRGB(i, j+2, pixelColor);
+                        image.setRGB(i+1, j+2, pixelColor);
+                        image.setRGB(i+2, j, pixelColor);
+                        image.setRGB(i+2, j+1, pixelColor);
+                        image.setRGB(i+2, j+2, pixelColor);
+                    }
+                }
             }
         }
     }
@@ -402,13 +438,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
     void MIP(double[] viewMatrix) {
         
+        //efficiency variables
         boolean use_TLIP = true;
-        int stepsize = 1;
-        
+        int ray_steps = 1;
+        int image_steps=1;
         if(interactiveMode){
-            use_TLIP = false;
-            stepsize = 3;
+            TLIP = false;
+            ray_steps = 3;
+            image_steps = 2;
         }
+        
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -442,11 +481,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         int depth = (int) Math.floor(Math.sqrt( Math.pow(volume.getDimX(), 2) + Math.pow(volume.getDimY(), 2) + Math.pow(volume.getDimZ(), 2)));
         
-        for (int j = 0; j < image.getHeight(); j++) {
-            for (int i = 0; i < image.getWidth(); i++) {
+        for (int j = 0; j < image.getHeight(); j=j+image_step) {
+            for (int i = 0; i < image.getWidth(); i=i+image_step) {
                 int maxval = 0;
                 
-                for(int ray = 0; ray < depth; ray=ray+stepsize){
+                for(int ray = 0; ray < depth; ray=ray+ray_steps){
                     
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
@@ -479,6 +518,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 int c_blue = voxelColor.b <= 1.0 ? (int) Math.floor(voxelColor.b * 255) : 255;
                 int pixelColor = (c_alpha << 24) | (c_red << 16) | (c_green << 8) | c_blue;
                 image.setRGB(i, j, pixelColor);
+                
+                //set skipped pixels to pixelcolor in interactive mode 
+                if(image_steps>1){
+                    if(j+1<image.getHeight() && i+1<image.getWidth()){
+                        image.setRGB(i, j+1, pixelColor);
+                        image.setRGB(i+1, j, pixelColor);
+                        image.setRGB(i+1, j+1, pixelColor);
+                    }
+                }
             }
         }
 
