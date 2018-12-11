@@ -312,8 +312,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double chosenRadius = tfEditor2D.triangleWidget.radius;
         TFColor chosenColor = tfEditor2D.triangleWidget.color;
         
-        double th = 1.0;
-        
 
         // clear image SETS IMAGE CONTENT TO 0 FOR ALL PIXELS
         for (int j = 0; j < image.getHeight(); j++) {
@@ -350,10 +348,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             for (int i = 0; i < image.getWidth(); i++) {
                 
                 //Create ci (colorOut) and ci-1 (colorIn)
-                TFColor colorOut = new TFColor();
+                TFColor colorOut = new TFColor(0,0,0,1);
                 TFColor colorIn = new TFColor();
                 
-                for (int ray = 0; ray < maxDepth; ray++){
+                for (int ray = 0; ray < maxDepth; ray = ray + stepsize){
                     
                     pixelCoord[0] = uVec[0] * (i - imageCenter) + vVec[0] * (j - imageCenter)
                             + volumeCenter[0] + viewVec[0] * (ray-imageCenter);
@@ -365,28 +363,27 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                                                         
                     int val = getVoxel(pixelCoord, TLIP);
                     
-                    if (pixelCoord[0] >= volume.getDimX() || pixelCoord[0] < 0 || pixelCoord[1] >= volume.getDimY() || pixelCoord[1] < 0 || pixelCoord[2] >= volume.getDimZ() || pixelCoord[2] < 0) {
-                            continue;
-                        }
-                                                           
-                    VoxelGradient vg = gradients.getGradient((int)Math.floor(pixelCoord[0]), (int)Math.floor(pixelCoord[1]), (int)Math.floor(pixelCoord[2]));
-                    
-                    //Levoy's method
-                    if (vg.mag == 0 && val == chosenIntensity) {
-                        voxelColor.a = chosenColor.a;
-                    } else if (vg.mag > 0 && (val - chosenRadius * vg.mag) <= chosenIntensity && chosenIntensity <= (val + chosenRadius * vg.mag)) {
-                        voxelColor.a = chosenColor.a * ((1 - 1/chosenRadius) * (Math.abs(chosenIntensity - val) / Math.abs(vg.mag)));
-                    } else {
-                        voxelColor.a = 0;
-                    }
-                    
-                    //Back to front, from the slides
-                    colorOut.r = voxelColor.a*chosenColor.r + (1-voxelColor.a)*colorIn.r;
-                    colorOut.g = voxelColor.a*chosenColor.g + (1-voxelColor.a)*colorIn.g;
-                    colorOut.b = voxelColor.a*chosenColor.b + (1-voxelColor.a)*colorIn.b;
-                    colorOut.a = (1-voxelColor.a)*colorIn.a;
+                    if ( ( (pixelCoord[0] < volume.getDimX() -1 && pixelCoord[0] >= 0) || (pixelCoord[1] < volume.getDimY() -1 && pixelCoord[1]  >= 0) || (pixelCoord[2] < volume.getDimZ() -1 && pixelCoord[2] >= 0) ) && val > 0) {
 
-                    colorIn = colorOut;       
+                        VoxelGradient vg = gradients.getGradient((int)Math.floor(pixelCoord[0]), (int)Math.floor(pixelCoord[1]), (int)Math.floor(pixelCoord[2]));
+
+                        //Levoy's method
+                        if (Math.abs(vg.mag) == 0 && val == chosenIntensity) {
+                            voxelColor.a = chosenColor.a * 1.0;
+                        } else if (Math.abs(vg.mag) > 0 && (val - chosenRadius * Math.abs(vg.mag)) <= chosenIntensity && chosenIntensity <= (val + chosenRadius * Math.abs(vg.mag))) {
+                            voxelColor.a = chosenColor.a * (1 - (1/chosenRadius) * (Math.abs(chosenIntensity - val) / Math.abs(vg.mag)));
+                        } else {
+                            voxelColor.a = 0;
+                        }
+
+                        //Back to front, from the slides
+                        colorOut.r = voxelColor.a*chosenColor.r + (1-voxelColor.a)*colorIn.r;
+                        colorOut.g = voxelColor.a*chosenColor.g + (1-voxelColor.a)*colorIn.g;
+                        colorOut.b = voxelColor.a*chosenColor.b + (1-voxelColor.a)*colorIn.b;
+                        colorOut.a = (1-voxelColor.a)*colorIn.a;
+
+                        colorIn = colorOut; 
+                    }
 
                 }
                 
