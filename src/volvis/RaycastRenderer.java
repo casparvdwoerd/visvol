@@ -209,7 +209,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     void compositing(double[] viewMatrix, boolean TLIP) {
         
         //efficiency variables
-        boolean use_TLIP = true;
         int ray_steps = 1;
         int image_steps=1;
         if(interactiveMode){
@@ -250,7 +249,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         
         for (int j = 0; j < image.getHeight(); j=j+image_steps) {
-            for (int i = 0; i < image.getWidth(); i=i+image_steps {
+            for (int i = 0; i < image.getWidth(); i=i+image_steps) {
                 
                 //Create ci (colorOut) and ci-1 (colorIn)
                 TFColor colorOut = new TFColor();
@@ -265,13 +264,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     pixelCoord[2] = uVec[2] * (i - imageCenter) + vVec[2] * (j - imageCenter)
                             + volumeCenter[2] + viewVec[2] * (ray-imageCenter) ;
 
-                    int val = 0;
-                    
-                    if (TLIP) {
-                        val = TLIP(pixelCoord);
-                    } else {
-                        val = getVoxel(pixelCoord, TLIP);  
-                    }
+                    int val = getVoxel(pixelCoord, TLIP);
                     
                     
                     voxelColor = tFunc.getColor(val);
@@ -318,7 +311,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     void twoD(double[] viewMatrix, boolean TLIP) {
        
         //efficiency variables
-        boolean use_TLIP = true;
         int ray_steps = 1;
         int image_steps=1;
         if(interactiveMode){
@@ -443,7 +435,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int ray_steps = 1;
         int image_steps=1;
         if(interactiveMode){
-            TLIP = false;
+            use_TLIP = false;
             ray_steps = 3;
             image_steps = 2;
         }
@@ -481,8 +473,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         int depth = (int) Math.floor(Math.sqrt( Math.pow(volume.getDimX(), 2) + Math.pow(volume.getDimY(), 2) + Math.pow(volume.getDimZ(), 2)));
         
-        for (int j = 0; j < image.getHeight(); j=j+image_step) {
-            for (int i = 0; i < image.getWidth(); i=i+image_step) {
+        for (int j = 0; j < image.getHeight(); j=j+image_steps) {
+            for (int i = 0; i < image.getWidth(); i=i+image_steps) {
                 int maxval = 0;
                 
                 for(int ray = 0; ray < depth; ray=ray+ray_steps){
